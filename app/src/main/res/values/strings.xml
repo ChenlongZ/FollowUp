@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FollowUp</string>
+    <string name="app_name">FollowItUp</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
@@ -13,6 +13,10 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
+    <!--Facebook assets-->
+    <string name="facebook_app_id">287386941729553</string>
+    <string name="fb_login_protocol_scheme">fb287386941729553</string>
 
     <string name="login_wechat">WeChat</string>
 

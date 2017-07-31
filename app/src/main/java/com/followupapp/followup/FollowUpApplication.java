@@ -1,4 +1,4 @@
-package followup.followupapp.com.followup;
+package com.followupapp.followup;
 
 import android.app.Application;
 

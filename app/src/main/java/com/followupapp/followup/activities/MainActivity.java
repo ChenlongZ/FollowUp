@@ -1,4 +1,4 @@
-package followup.followupapp.com.followup.activities;
+package com.followupapp.followup.activities;
 
 import android.support.v7.app.AppCompatActivity;
 

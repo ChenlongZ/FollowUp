@@ -1,4 +1,4 @@
-package followup.followupapp.com.followup.fragments;
+package com.followupapp.followup.fragments;
 
 import android.app.Fragment;
 
