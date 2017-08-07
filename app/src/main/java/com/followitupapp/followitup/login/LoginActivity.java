@@ -68,6 +68,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     // Email/Pass login.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
+    private Button emailLogin;
+    private Button emailSignup;
 
     // Facebook login
     private LoginButton fbLogin;
@@ -78,11 +80,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private GoogleSignInOptions googleSignInOptions;
     private GoogleApiClient googleApiClient;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // hide action bar
+        getSupportActionBar().hide();
 
         // Firebase Auth Setup
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -92,7 +96,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                    Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "User:" + user.getDisplayName() + " login successful", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.d(TAG, "onAuthStateChanged:signed_out");
                     Toast.makeText(LoginActivity.this, "logout successful", Toast.LENGTH_SHORT).show();
@@ -116,8 +120,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
         });
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
+        emailLogin = (Button) findViewById(R.id.email_sign_in_button);
+        emailLogin.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 mFirebaseAuth.signInWithEmailAndPassword(mEmailView.getText().toString(),
@@ -125,6 +129,18 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         .addOnCompleteListener(LoginActivity.this, new FireBaseListener("Email/Pass"));
             }
         });
+//        emailSignup = (Button) findViewById(R.id.email_sign_up_button);
+//        emailSignup.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (userId.getVisibility() == View.GONE) {
+//                    userId.setVisibility(View.VISIBLE);
+//                    userZod.setVisibility(View.VISIBLE);
+//                } else {
+//                    // TODO: do sign up
+//                }
+//            }
+//        });
 
         // FB login
         fbLogin = (LoginButton) findViewById(R.id.fb_login_button);
