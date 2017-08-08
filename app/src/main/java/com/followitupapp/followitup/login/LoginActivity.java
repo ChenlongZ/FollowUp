@@ -51,6 +51,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 import static android.Manifest.permission.READ_CONTACTS;
 
 /**
@@ -66,17 +69,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
     // Email/Pass login.
-    private AutoCompleteTextView mEmailView;
-    private EditText mPasswordView;
-    private Button emailLogin;
-    private Button emailSignup;
+    @BindView(R.id.email_edittext) AutoCompleteTextView mEmailView;
+    @BindView(R.id.password_edittext) EditText mPasswordView;
+    @BindView(R.id.email_login_signup_button) Button emailLogin;
 
     // Facebook login
-    private LoginButton fbLogin;
+    @BindView(R.id.fb_auth_button) LoginButton fbLogin;
     private CallbackManager callbackManager;
 
     // Google login
-    private SignInButton gLogin;
+    @BindView(R.id.google_auth_button) SignInButton gLogin;
     private GoogleSignInOptions googleSignInOptions;
     private GoogleApiClient googleApiClient;
 
@@ -87,6 +89,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         // hide action bar
         getSupportActionBar().hide();
+
+        // inject views
+        ButterKnife.bind(this);
 
         // Firebase Auth Setup
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -105,9 +110,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         };
 
         // EmailPass login
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
-        mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -120,7 +123,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
         });
-        emailLogin = (Button) findViewById(R.id.email_sign_in_button);
         emailLogin.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -143,7 +145,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 //        });
 
         // FB login
-        fbLogin = (LoginButton) findViewById(R.id.fb_login_button);
         callbackManager = CallbackManager.Factory.create();
         fbLogin.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
@@ -180,7 +181,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 })
                 .addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions)
                 .build();
-        gLogin = (SignInButton) findViewById(R.id.google_login_button);
         gLogin.setSize(SignInButton.SIZE_STANDARD);
         gLogin.setOnClickListener(new OnClickListener() {
             @Override
@@ -248,6 +248,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 jumpToMainActivity(greetings);
             }
         }
+    }
+
+    /**
+     * TODO: show up date picker for sign up forms
+     * @param view              the date and time EditText pressed
+     */
+    public void showDatePicker(View view) {
+    }
+
+    /**
+     * TODO: show sign up pannel from the signup_login container
+     * with animation
+     * @param view              the SignUp text pressed
+     */
+    public void showSignUpPanel(View view) {
     }
 
     /*--------------------------------------------------------------------------------------------*
