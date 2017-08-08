@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.animation.TimeInterpolator;
+import android.animation.TypeEvaluator;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
@@ -18,6 +19,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Layout;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -27,6 +29,8 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -88,6 +92,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     // misc. views
     @BindView(R.id.login_to_signup_lever_text) TextView bottomTextView;
+    @BindView(R.id.signup_container) LinearLayout signupPannel;
+    @BindView(R.id.userid_textedit) EditText userIdInput;
+    @BindView(R.id.signup_date_picker_edittext) EditText userDOBInput;
+    @BindView(R.id.signup_gender_switch) Switch userGenderSwitch;
+    @BindView(R.id.login_signup_container) LinearLayout loginSignupContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -397,10 +406,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
         bottomTextSubmergeAnimator.start();
-    }
-
-    private void animateBottomTextSwitch(boolean signup) {
-
+        final ObjectAnimator signalUpPanelWeightAnimator = ObjectAnimator.ofFloat(loginSignupContainer,
+                "layout_weight", loginSignupContainer.getWeightSum() + (signup ? 2f : -2f));
+        signalUpPanelWeightAnimator.setDuration(200);
+        signalUpPanelWeightAnimator.start();
+        signupPannel.setVisibility(signup ? View.VISIBLE : View.GONE);
+        emailLogin.setText(signup ? R.string.action_sign_up : R.string.action_sign_in);
     }
 }
 
