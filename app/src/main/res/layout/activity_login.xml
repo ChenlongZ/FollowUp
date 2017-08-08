@@ -23,7 +23,7 @@
         android:id="@+id/login_signup_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="14"
+        android:layout_weight="9"
         android:orientation="vertical">
 
         <LinearLayout
@@ -162,22 +162,12 @@
         android:gravity="center"
         android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:paddingRight="3dp"
-            android:textSize="16sp"
-            android:text="@string/sign_up_notification" />
-
-        <TextView
-            android:id="@+id/login_to_signup_lever_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:paddingLeft="3dp"
-            android:textSize="16sp"
-            android:text="@string/sign_up_action"
-            android:onClick="showSignUpPanel"/>
+            <TextView
+                android:id="@+id/login_to_signup_lever_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:text="@string/action_show_sign_up"
+                android:onClick="onBottomTextClicked"/>
     </LinearLayout>
 </LinearLayout>

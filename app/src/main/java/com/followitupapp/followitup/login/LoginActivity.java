@@ -1,5 +1,9 @@
 package com.followitupapp.followitup.login;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.animation.TimeInterpolator;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
@@ -81,6 +85,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @BindView(R.id.google_auth_button) SignInButton gLogin;
     private GoogleSignInOptions googleSignInOptions;
     private GoogleApiClient googleApiClient;
+
+    // misc. views
+    @BindView(R.id.login_to_signup_lever_text) TextView bottomTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -260,9 +267,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     /**
      * TODO: show sign up pannel from the signup_login container
      * with animation
-     * @param view              the SignUp text pressed
+     * @param v                 the SignUp text pressed
      */
-    public void showSignUpPanel(View view) {
+    public void onBottomTextClicked(View v) {
+        if (getResources().getString(R.string.action_show_sign_up).equals(((TextView)v).getText())) {
+            showSignUpPannel(true);
+        } else {
+            showSignUpPannel(false);
+        }
     }
 
     /*--------------------------------------------------------------------------------------------*
@@ -366,6 +378,29 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         int ADDRESS = 0;
         int IS_PRIMARY = 1;
+    }
+
+    /*--------------------------------------------------------------------------------------------*
+     *                             V I E W   A N I M A T I O N S
+     *--------------------------------------------------------------------------------------------*/
+    private void showSignUpPannel(final boolean signup) {
+        final ObjectAnimator bottomTextSubmergeAnimator = ObjectAnimator.ofFloat(bottomTextView, "y", bottomTextView.getY() + 150f);
+        bottomTextSubmergeAnimator.setDuration(200);
+        bottomTextSubmergeAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                bottomTextView.setText(signup ? R.string.action_show_login : R.string.action_show_sign_up);
+                bottomTextSubmergeAnimator.setFloatValues(bottomTextView.getY() - 150f);
+                bottomTextSubmergeAnimator.removeAllListeners();
+                bottomTextSubmergeAnimator.start();
+            }
+        });
+        bottomTextSubmergeAnimator.start();
+    }
+
+    private void animateBottomTextSwitch(boolean signup) {
+
     }
 }
 
