@@ -2,9 +2,8 @@ package com.followitupapp.followitup.login;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.animation.TimeInterpolator;
-import android.animation.TypeEvaluator;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
@@ -19,7 +18,6 @@ import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Layout;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -96,7 +94,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @BindView(R.id.userid_textedit) EditText userIdInput;
     @BindView(R.id.signup_date_picker_edittext) EditText userDOBInput;
     @BindView(R.id.signup_gender_switch) Switch userGenderSwitch;
-    @BindView(R.id.login_signup_container) LinearLayout loginSignupContainer;
+    @BindView(R.id.email_login_signup_container) LinearLayout loginSignUpContainer;
+    @BindView(R.id.third_party_auth_container) LinearLayout thirdPartyAuthContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -280,9 +279,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     public void onBottomTextClicked(View v) {
         if (getResources().getString(R.string.action_show_sign_up).equals(((TextView)v).getText())) {
-            showSignUpPannel(true);
+            showSignUpPanel(true);
         } else {
-            showSignUpPannel(false);
+            showSignUpPanel(false);
         }
     }
 
@@ -392,7 +391,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     /*--------------------------------------------------------------------------------------------*
      *                             V I E W   A N I M A T I O N S
      *--------------------------------------------------------------------------------------------*/
-    private void showSignUpPannel(final boolean signup) {
+    private void showSignUpPanel(final boolean signup) {
         final ObjectAnimator bottomTextSubmergeAnimator = ObjectAnimator.ofFloat(bottomTextView, "y", bottomTextView.getY() + 150f);
         bottomTextSubmergeAnimator.setDuration(200);
         bottomTextSubmergeAnimator.addListener(new AnimatorListenerAdapter() {
@@ -400,18 +399,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 bottomTextView.setText(signup ? R.string.action_show_login : R.string.action_show_sign_up);
-                bottomTextSubmergeAnimator.setFloatValues(bottomTextView.getY() - 150f);
-                bottomTextSubmergeAnimator.removeAllListeners();
-                bottomTextSubmergeAnimator.start();
+                ObjectAnimator bottomTextPopAnimator = ObjectAnimator.ofFloat(bottomTextView, "y", bottomTextView.getY() - 150f);
+                bottomTextPopAnimator.setDuration(200);
+                bottomTextPopAnimator.start();
             }
         });
         bottomTextSubmergeAnimator.start();
-        final ObjectAnimator signalUpPanelWeightAnimator = ObjectAnimator.ofFloat(loginSignupContainer,
-                "layout_weight", loginSignupContainer.getWeightSum() + (signup ? 2f : -2f));
-        signalUpPanelWeightAnimator.setDuration(200);
-        signalUpPanelWeightAnimator.start();
         signupPannel.setVisibility(signup ? View.VISIBLE : View.GONE);
         emailLogin.setText(signup ? R.string.action_sign_up : R.string.action_sign_in);
+        final ObjectAnimator signalUpPanelAnimator = ObjectAnimator.ofInt(loginSignUpContainer,
+                "bottom", loginSignUpContainer.getBottom() + (signup ? 100 : -100));
+        final ObjectAnimator bottomContainerAnimator = ObjectAnimator.ofInt(thirdPartyAuthContainer,
+                "top", thirdPartyAuthContainer.getTop() + (signup ? -100 : 100));
+        final AnimatorSet as = new AnimatorSet();
+        as.playTogether(signalUpPanelAnimator, bottomContainerAnimator);
+        as.setDuration(200);
+//        as.start();
     }
 }
 

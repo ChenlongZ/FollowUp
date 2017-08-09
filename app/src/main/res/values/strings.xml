@@ -23,7 +23,7 @@
 
     <string name="action_show_sign_up">Not regiestered? Click me!</string>
     <string name="action_show_login">Back to login</string>
-    <string name="action_date_pick">Your awesome date of birth</string>
-    <string name="user_id_hint">Your awesome username</string>
+    <string name="action_date_pick">Date of birth</string>
+    <string name="user_id_hint">Username</string>
 
 </resources>
