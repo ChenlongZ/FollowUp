@@ -2,7 +2,6 @@ package com.followitupapp.followitup.login;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
@@ -94,8 +93,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @BindView(R.id.userid_textedit) EditText userIdInput;
     @BindView(R.id.signup_date_picker_edittext) EditText userDOBInput;
     @BindView(R.id.signup_gender_switch) Switch userGenderSwitch;
-    @BindView(R.id.email_login_signup_container) LinearLayout loginSignUpContainer;
-    @BindView(R.id.third_party_auth_container) LinearLayout thirdPartyAuthContainer;
+    @BindView(R.id.login_signup_container) LinearLayout loginSignUpContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -407,14 +405,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         bottomTextSubmergeAnimator.start();
         signupPannel.setVisibility(signup ? View.VISIBLE : View.GONE);
         emailLogin.setText(signup ? R.string.action_sign_up : R.string.action_sign_in);
-        final ObjectAnimator signalUpPanelAnimator = ObjectAnimator.ofInt(loginSignUpContainer,
-                "bottom", loginSignUpContainer.getBottom() + (signup ? 100 : -100));
-        final ObjectAnimator bottomContainerAnimator = ObjectAnimator.ofInt(thirdPartyAuthContainer,
-                "top", thirdPartyAuthContainer.getTop() + (signup ? -100 : 100));
-        final AnimatorSet as = new AnimatorSet();
-        as.playTogether(signalUpPanelAnimator, bottomContainerAnimator);
-        as.setDuration(200);
-//        as.start();
     }
 }
 
