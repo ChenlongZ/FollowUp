@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:gravity="center_horizontal"
     android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -101,15 +102,23 @@
 
                 <EditText
                     android:id="@+id/signup_date_picker_edittext"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="7"
                     android:hint="@string/action_date_pick"
+                    android:inputType="date"
                     android:onClick="showDatePicker" />
 
                 <Switch
                     android:id="@+id/signup_gender_switch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:thumb="@drawable/sex_toggle_thumb"
+                    android:track="@drawable/sex_toggle_track"
+                    android:textOff=""
+                    android:textOn=""/>
+
             </LinearLayout>
         </LinearLayout>
 
