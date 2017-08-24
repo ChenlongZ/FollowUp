@@ -2,23 +2,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:gravity="center_horizontal"
     android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@color/loginActivityBackground"
     tools:context="com.followitupapp.followitup.login.LoginActivity">
-
-    <!-- Login progress -->
-    <!--<ProgressBar-->
-    <!--android:id="@+id/login_progress"-->
-    <!--style="?android:attr/progressBarStyleLarge"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_marginBottom="8dp"-->
-    <!--android:visibility="gone" />-->
 
     <LinearLayout
         android:id="@+id/app_logo_container"
@@ -87,12 +78,18 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <EditText
-                android:id="@+id/userid_textedit"
+            <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/user_id_hint"
-                android:maxLines="1" />
+                android:layout_height="wrap_content">
+                <EditText
+                    android:id="@+id/userid_textedit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/user_id_hint"
+                    android:inputType="text"
+                    android:maxLines="1" />
+            </android.support.design.widget.TextInputLayout>
+
 
             <LinearLayout
                 android:id="@+id/signup_misc_container"
@@ -106,14 +103,15 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="7"
                     android:hint="@string/action_date_pick"
-                    android:inputType="date"
-                    android:onClick="showDatePicker" />
+                    android:onClick="showDatePicker"
+                    android:focusable="false"/>
 
                 <Switch
                     android:id="@+id/signup_gender_switch"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="25dp"
                     android:layout_weight="3"
+                    android:padding="5dp"
                     android:thumb="@drawable/sex_toggle_thumb"
                     android:track="@drawable/sex_toggle_track"
                     android:textOff=""

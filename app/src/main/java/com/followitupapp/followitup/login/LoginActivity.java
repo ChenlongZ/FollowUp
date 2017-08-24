@@ -4,19 +4,26 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.app.TimePickerDialog;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.icu.text.SimpleDateFormat;
+import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -25,10 +32,12 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -52,6 +61,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -115,10 +125,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                    Toast.makeText(LoginActivity.this, "User:" + user.getDisplayName() + " login successful", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.d(TAG, "onAuthStateChanged:signed_out");
-                    Toast.makeText(LoginActivity.this, "logout successful", Toast.LENGTH_SHORT).show();
                 }
             }
         };
@@ -140,23 +148,32 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         emailLogin.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                mFirebaseAuth.signInWithEmailAndPassword(mEmailView.getText().toString(),
-                        mPasswordView.getText().toString())
-                        .addOnCompleteListener(LoginActivity.this, new FireBaseListener("Email/Pass"));
+                String action_sign_in = getResources().getString(R.string.action_sign_in);
+                String action_sign_up = getResources().getString(R.string.action_sign_up);
+                String btnText = (((Button) view).getText().toString());
+                if (btnText.equals(action_sign_in)) {
+                    mFirebaseAuth.signInWithEmailAndPassword(mEmailView.getText().toString(),
+                            mPasswordView.getText().toString())
+                            .addOnCompleteListener(LoginActivity.this, new FireBaseListener("Email/Pass"));
+                } else if (btnText.equals(action_sign_up)) {
+                    mFirebaseAuth.createUserWithEmailAndPassword(mEmailView.getText().toString(),
+                            mPasswordView.getText().toString())
+                            .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if (!task.isSuccessful()) {
+                                        Log.e(TAG, "User sign up failed: ", task.getException());
+                                        Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(LoginActivity.this, "Sign up successful", Toast.LENGTH_SHORT).show();
+                                        jumpToMainActivity("newcomer");
+                                        // TODO: complete user info (in separate thread)
+                                    }
+                                }
+                            });
+                }
             }
         });
-//        emailSignup = (Button) findViewById(R.id.email_sign_up_button);
-//        emailSignup.setOnClickListener(new OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (userId.getVisibility() == View.GONE) {
-//                    userId.setVisibility(View.VISIBLE);
-//                    userZod.setVisibility(View.VISIBLE);
-//                } else {
-//                    // TODO: do sign up
-//                }
-//            }
-//        });
 
         // FB login
         callbackManager = CallbackManager.Factory.create();
@@ -247,17 +264,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     private class FireBaseListener implements OnCompleteListener {
-
         private String greetings;
-
         public FireBaseListener(String greetings) {
             this.greetings = greetings;
         }
-
         @Override
         public void onComplete(@NonNull Task task) {
             if (!task.isSuccessful()) {
                 Log.e(TAG, "Sign in with " + greetings + " failed: ", task.getException());
+                Toast.makeText(LoginActivity.this, "Invalid user credentials", Toast.LENGTH_SHORT).show();
             } else {
                 jumpToMainActivity(greetings);
             }
@@ -269,6 +284,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * @param view              the date and time EditText pressed
      */
     public void showDatePicker(View view) {
+        DialogFragment newFragment = new DatePickerFragment();
+        newFragment.show(getSupportFragmentManager(), "datePicker");
     }
 
     /**
@@ -281,6 +298,28 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showSignUpPanel(true);
         } else {
             showSignUpPanel(false);
+        }
+    }
+
+    public static class DatePickerFragment extends DialogFragment
+            implements DatePickerDialog.OnDateSetListener{
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            final Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int date = c.get(Calendar.DATE);
+
+            // Create a new instance of TimePickerDialog and return it
+            return new DatePickerDialog(getActivity(), this, year, month, date);
+        }
+
+        @Override
+        public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+            ((TextView) getActivity().findViewById(R.id.signup_date_picker_edittext)).setText(
+                    "" + year + "/" + month + "/" + dayOfMonth
+            );
         }
     }
 
