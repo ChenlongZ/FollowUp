@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#f0ffffff</color>
+    <color name="colorAccent">#f0d73e3e</color>
 
     <color name="inputSlot">#a2383838</color>
     <color name="loginActivityBackground">#56c95f</color>

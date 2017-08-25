@@ -21,22 +21,24 @@ public class User {
     public String email;
     public String userId;
     public int age;
+    public boolean sex;
     public Misc.Zodiac zodiac;
     public Date dateOfBirth;
 
     public User() {}
 
-    public User(String email, String userId, String dataOfBirth) {
+    public User(String email, String userId, String dataOfBirth, boolean male) {
         this.email = email;
         this.userId = userId;
         try {
-            this.dateOfBirth = new SimpleDateFormat("MM/dd/YYYY", loc).parse(dataOfBirth);
+            this.dateOfBirth = new SimpleDateFormat("yyyy-MM-dd", loc).parse(dataOfBirth);
         } catch (ParseException pe) {
             Log.e(TAG, "Parse user data of birth error: ", pe);
             this.dateOfBirth = null;
         }
         this.age = Misc.getAge(this.dateOfBirth);
         this.zodiac = Misc.getZodiac(this.dateOfBirth);
+        this.sex = male;
     }
 
     public String getEmail() {
@@ -59,6 +61,10 @@ public class User {
         }
     }
 
+    public boolean getSex() {
+        return this.sex;
+    }
+
     public String getDateOfBirth() {
         return this.dateOfBirth.toString();
     }
@@ -73,5 +79,9 @@ public class User {
 
     public void setZodiac(String zodiac) {
         this.zodiac = Misc.getZodiac(zodiac);
+    }
+
+    public void setSex(boolean male) {
+        this.sex = male;
     }
 }

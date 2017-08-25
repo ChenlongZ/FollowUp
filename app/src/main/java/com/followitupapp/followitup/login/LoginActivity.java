@@ -7,13 +7,11 @@ import android.annotation.TargetApi;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.app.TimePickerDialog;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Build;
@@ -23,7 +21,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -37,9 +34,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +46,7 @@ import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.followitupapp.followitup.R;
 import com.followitupapp.followitup.activities.MainActivity;
+import com.followitupapp.followitup.models.User;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -66,6 +62,8 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -82,6 +80,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int REQUEST_READ_CONTACTS = 0XFACE;
 
     private FirebaseAuth mFirebaseAuth;
+    private DatabaseReference mDatabaseReference;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
     // Email/Pass login.
@@ -116,6 +115,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         // inject views
         ButterKnife.bind(this);
+
+        // Firebase realtime database
+        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
         // Firebase Auth Setup
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -168,6 +170,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                         Toast.makeText(LoginActivity.this, "Sign up successful", Toast.LENGTH_SHORT).show();
                                         jumpToMainActivity("newcomer");
                                         // TODO: complete user info (in separate thread)
+                                        User user = new User(mEmailView.getText().toString(),
+                                                userIdInput.getText().toString(),
+                                                userDOBInput.getText().toString(),
+                                                userGenderSwitch.isChecked());
+                                        mDatabaseReference.child("users").child(user.getUserId()).setValue(user);
                                     }
                                 }
                             });
@@ -318,7 +325,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
             ((TextView) getActivity().findViewById(R.id.signup_date_picker_edittext)).setText(
-                    "" + year + "/" + month + "/" + dayOfMonth
+                    "" + year + "-" + month + "-" + dayOfMonth
             );
         }
     }

@@ -2,6 +2,8 @@ package com.followitupapp.followitup.util;
 
 import android.util.Log;
 
+import com.followitupapp.followitup.login.LoginActivity;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,12 +16,12 @@ import java.util.List;
 
 public final class Misc {
 
-    public static final String TAG = "Toolkit";
+    private static final String TAG = "Toolkit";
 
-    static final long SECONDS_IN_MILLI = 1000;
-    static final long MINUTES_IN_MILLI = SECONDS_IN_MILLI * 60;
-    static final long HOURS_IN_MILLI = MINUTES_IN_MILLI * 60;
-    static final long DAYS_IN_MILLI = HOURS_IN_MILLI * 24;
+    private static final long SECONDS_IN_MILLI = 1000;
+    private static final long MINUTES_IN_MILLI = SECONDS_IN_MILLI * 60;
+    private static final long HOURS_IN_MILLI = MINUTES_IN_MILLI * 60;
+    private static final long DAYS_IN_MILLI = HOURS_IN_MILLI * 24;
 
     public static Zodiac getZodiac(Date dateOfBirth) {
         if (dateOfBirth == null) return null;
@@ -73,8 +75,8 @@ public final class Misc {
         public boolean isMySign(Date date) {
             if (date == null) return false;
             try {
-                Date startDate = new SimpleDateFormat("MM/dd/YYYY").parse(start + "/" + date.getYear());
-                Date endDate = new SimpleDateFormat("MM/dd/YYYY").parse(end + "/" + date.getYear());
+                Date startDate = new SimpleDateFormat("yyyy-MM-dd").parse(start + "-" + date.getYear());
+                Date endDate = new SimpleDateFormat("yyyy-MM-dd").parse(end + "-" + date.getYear());
                 if (val.equals("Capricorn")) {
                     if (startDate.before(date) || endDate.after(date)) {
                         return true;
