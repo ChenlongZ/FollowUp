@@ -2,10 +2,8 @@ package com.followitupapp.followitup.util;
 
 import android.util.Log;
 
-import com.followitupapp.followitup.login.LoginActivity;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.CharArrayReader;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,7 +21,7 @@ public final class Misc {
     private static final long HOURS_IN_MILLI = MINUTES_IN_MILLI * 60;
     private static final long DAYS_IN_MILLI = HOURS_IN_MILLI * 24;
 
-    public static Zodiac getZodiac(Date dateOfBirth) {
+    public static Zodiac getZodiac(Calendar dateOfBirth) {
         if (dateOfBirth == null) return null;
         for (Zodiac sign : Zodiac.signs) {
             if (sign.isMySign(dateOfBirth)) {
@@ -42,57 +40,55 @@ public final class Misc {
         return null;
     }
 
-    public static int getAge(Date dateOfBirth) {
+    public static int getAge(Calendar dateOfBirth) {
         if (dateOfBirth == null) return Integer.MAX_VALUE;      //TODO: what should be set here
-        Date now = new Date();
-        long birthTime = dateOfBirth.getTime();
-        long nowTime = now.getTime();
+        long birthTime = dateOfBirth.getTimeInMillis();
+        long nowTime = new Date().getTime();
         long difference = nowTime - birthTime;
-        return (int) (difference / DAYS_IN_MILLI % 365);
+        return (int) (difference / DAYS_IN_MILLI / 365);
     }
 
     public enum Zodiac {
-        ARIES("Aries", "3/21", "4/20"),
-        TAURUS("Taurus", "4/21", "5/21"),
-        GEMINI("Gemini", "5/22", "6/21"),
-        CANCER("Cancer", "6/22", "7/22"),
-        LEO("Leo", "7/23", "8/22"),
-        VIRGO("Virgo", "8/23", "9/22"),
-        LIBRA("Libra", "9/23", "10/22"),
-        SCORPIO("Scorpio", "10/23", "11/21"),
-        SAGITTARIUS("Sagittarius", "11/22", "12/21"),
-        CAPRICORN("Capricorn", "12/22", "1/20"),
-        AQUARIUS("Aquarius", "1/21", "2/19"),
-        PISCES("Pisces", "2/20", "3/20");
-        public String val, start, end;
+        ARIES("Aries", 3.21f, 4.20f),
+        TAURUS("Taurus", 4.21f, 5.21f),
+        GEMINI("Gemini", 5.22f, 6.21f),
+        CANCER("Cancer", 6.22f, 7.22f),
+        LEO("Leo", 7.23f, 8.22f),
+        VIRGO("Virgo", 8.23f, 9.22f),
+        LIBRA("Libra", 9.23f, 10.22f),
+        SCORPIO("Scorpio", 10.23f, 11.21f),
+        SAGITTARIUS("Sagittarius", 11.22f, 12.21f),
+        CAPRICORN("Capricorn", 12.22f, 1.20f),
+        AQUARIUS("Aquarius", 1.21f, 2.19f),
+        PISCES("Pisces", 2.20f, 3.20f);
 
-        Zodiac(String val, String start, String end) {
+        public String val;
+        float start, end;
+
+        Zodiac(String val, float start, float end) {
             this.val = val;
             this.start = start;
             this.end = end;
         }
 
-        public boolean isMySign(Date date) {
+        public boolean isMySign(Calendar date) {
             if (date == null) return false;
-            try {
-                Date startDate = new SimpleDateFormat("yyyy-MM-dd").parse(start + "-" + date.getYear());
-                Date endDate = new SimpleDateFormat("yyyy-MM-dd").parse(end + "-" + date.getYear());
-                if (val.equals("Capricorn")) {
-                    if (startDate.before(date) || endDate.after(date)) {
-                        return true;
-                    }
-                } else {
-                    if (startDate.before(date) && endDate.after(date)) {
-                        return true;
-                    }
-                }
-                return false;
-            } catch (ParseException pe) {
-                Log.e(TAG, "failed parsing date...");
-                return false;
+            float floatingDate = date.get(Calendar.MONTH) + ((float) date.get(Calendar.DATE)) / 100;
+            if (floatingDate < 1) {
+                floatingDate += 12;
             }
-
+            if (val.equals("Capricorn")) {
+                if (start <= floatingDate || end >= floatingDate) {
+                    return true;
+                }
+            } else {
+                if (start <= floatingDate && end >= floatingDate) {
+                    return true;
+                }
+            }
+            return false;
         }
+
         public static List<Zodiac> signs = new LinkedList<>();
 
         static {

@@ -1,12 +1,9 @@
 package com.followitupapp.followitup.models;
 
-import android.util.Log;
-
 import com.followitupapp.followitup.util.Misc;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 
 /**
@@ -20,22 +17,21 @@ public class User {
     private static Locale loc = Locale.getDefault();
     public String email;
     public String userId;
-    public int age;
+    public Calendar dateOfBirth;
     public boolean sex;
+    public int age;
     public Misc.Zodiac zodiac;
-    public Date dateOfBirth;
 
-    public User() {}
+    public User() {
+    }
 
     public User(String email, String userId, String dataOfBirth, boolean male) {
         this.email = email;
         this.userId = userId;
-        try {
-            this.dateOfBirth = new SimpleDateFormat("yyyy-MM-dd", loc).parse(dataOfBirth);
-        } catch (ParseException pe) {
-            Log.e(TAG, "Parse user data of birth error: ", pe);
-            this.dateOfBirth = null;
-        }
+        String[] dob = dataOfBirth.split("-");
+        this.dateOfBirth = new GregorianCalendar(Integer.parseInt(dob[0]),
+                Integer.parseInt(dob[1]),
+                Integer.parseInt(dob[2]));
         this.age = Misc.getAge(this.dateOfBirth);
         this.zodiac = Misc.getZodiac(this.dateOfBirth);
         this.sex = male;
@@ -65,8 +61,8 @@ public class User {
         return this.sex;
     }
 
-    public String getDateOfBirth() {
-        return this.dateOfBirth.toString();
+    public long getDateOfBirth() {
+        return this.dateOfBirth.getTimeInMillis();
     }
 
     public void setEmail(String Email) {

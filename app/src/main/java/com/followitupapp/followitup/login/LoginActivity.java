@@ -325,8 +325,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
             ((TextView) getActivity().findViewById(R.id.signup_date_picker_edittext)).setText(
-                    "" + year + "-" + month + "-" + dayOfMonth
-            );
+                    "" + year + "-" + (month + 1) + "-" + dayOfMonth);
         }
     }
 
