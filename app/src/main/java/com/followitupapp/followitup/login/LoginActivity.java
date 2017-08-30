@@ -36,9 +36,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -47,6 +44,7 @@ import com.facebook.login.widget.LoginButton;
 import com.followitupapp.followitup.R;
 import com.followitupapp.followitup.activities.MainActivity;
 import com.followitupapp.followitup.models.User;
+import com.followitupapp.followitup.util.Misc;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -62,8 +60,14 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -80,30 +84,41 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int REQUEST_READ_CONTACTS = 0XFACE;
 
     private FirebaseAuth mFirebaseAuth;
-    private DatabaseReference mDatabaseReference;
+    private DatabaseReference mUserReference;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
 
     // Email/Pass login.
-    @BindView(R.id.email_edittext) AutoCompleteTextView mEmailView;
-    @BindView(R.id.password_edittext) EditText mPasswordView;
-    @BindView(R.id.email_login_signup_button) Button emailLogin;
+    @BindView(R.id.email_edittext)
+    AutoCompleteTextView mEmailView;
+    @BindView(R.id.password_edittext)
+    EditText mPasswordView;
+    @BindView(R.id.email_login_signup_button)
+    Button emailLogin;
 
     // Facebook login
-    @BindView(R.id.fb_auth_button) LoginButton fbLogin;
+    @BindView(R.id.fb_auth_button)
+    LoginButton fbLogin;
     private CallbackManager callbackManager;
 
     // Google login
-    @BindView(R.id.google_auth_button) SignInButton gLogin;
+    @BindView(R.id.google_auth_button)
+    SignInButton gLogin;
     private GoogleSignInOptions googleSignInOptions;
     private GoogleApiClient googleApiClient;
 
     // misc. views
-    @BindView(R.id.login_to_signup_lever_text) TextView bottomTextView;
-    @BindView(R.id.signup_container) LinearLayout signupPannel;
-    @BindView(R.id.userid_textedit) EditText userIdInput;
-    @BindView(R.id.signup_date_picker_edittext) EditText userDOBInput;
-    @BindView(R.id.signup_gender_switch) Switch userGenderSwitch;
-    @BindView(R.id.login_signup_container) LinearLayout loginSignUpContainer;
+    @BindView(R.id.login_to_signup_lever_text)
+    TextView bottomTextView;
+    @BindView(R.id.signup_container)
+    LinearLayout signupPannel;
+    @BindView(R.id.userid_textedit)
+    EditText userIdInput;
+    @BindView(R.id.signup_date_picker_edittext)
+    EditText userDOBInput;
+    @BindView(R.id.signup_gender_switch)
+    Switch userGenderSwitch;
+    @BindView(R.id.login_signup_container)
+    LinearLayout loginSignUpContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,16 +132,27 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         ButterKnife.bind(this);
 
         // Firebase realtime database
-        mDatabaseReference = FirebaseDatabase.getInstance().getReference();
+        mUserReference = FirebaseDatabase.getInstance().getReference().child("users");
 
         // Firebase Auth Setup
         mFirebaseAuth = FirebaseAuth.getInstance();
         mAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                if (firebaseUser != null) {
+                    Log.d(TAG, "onAuthStateChanged:signed_in:" + firebaseUser.getUid());
+                    String userId = firebaseUser.getUid();
+                    String userEmail = firebaseUser.getEmail();
+                    Boolean userSex = userGenderSwitch == null || userGenderSwitch.isChecked();
+                    String userDOB = (userDOBInput != null && !"".equals(userDOBInput.getText().toString()))
+                            ? userDOBInput.getText().toString().trim()
+                            : "1900-01-01";
+                    User user = new User(userEmail, userId, userDOB, userSex);
+                    // TODO: do a query, if there is a user with the userId, we proceed with the user
+                    // TODO: if there's no user exists, we create a user with the info we have
+                    mUserReference.child(userId).setValue(user);
+                    jumpToMainActivity(user);
                 } else {
                     Log.d(TAG, "onAuthStateChanged:signed_out");
                 }
@@ -134,15 +160,17 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         };
 
         // EmailPass login
-        populateAutoComplete();
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    mFirebaseAuth.signInWithEmailAndPassword(mEmailView.getText().toString(),
-                            mPasswordView.getText().toString())
-                            .addOnCompleteListener(LoginActivity.this, new FireBaseListener("Email/Pass"));
-                    return true;
+                    String email = mEmailView.getText().toString().trim();
+                    String password = mPasswordView.getText().toString().trim();
+                    if (checkEmailPassword(email, password)) {
+                        mFirebaseAuth.signInWithEmailAndPassword(email, password)
+                                .addOnCompleteListener(LoginActivity.this, new FireBaseListener("Email/Pass"));
+                        return true;
+                    }
                 }
                 return false;
             }
@@ -153,13 +181,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 String action_sign_in = getResources().getString(R.string.action_sign_in);
                 String action_sign_up = getResources().getString(R.string.action_sign_up);
                 String btnText = (((Button) view).getText().toString());
+                String email = mEmailView.getText().toString().trim();
+                String password = mPasswordView.getText().toString().trim();
+                if (!checkEmailPassword(email, password)) {
+                    return;
+                }
                 if (btnText.equals(action_sign_in)) {
-                    mFirebaseAuth.signInWithEmailAndPassword(mEmailView.getText().toString(),
-                            mPasswordView.getText().toString())
+                    mFirebaseAuth.signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener(LoginActivity.this, new FireBaseListener("Email/Pass"));
                 } else if (btnText.equals(action_sign_up)) {
-                    mFirebaseAuth.createUserWithEmailAndPassword(mEmailView.getText().toString(),
-                            mPasswordView.getText().toString())
+                    mFirebaseAuth.createUserWithEmailAndPassword(email, password)
                             .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
                                 @Override
                                 public void onComplete(@NonNull Task<AuthResult> task) {
@@ -168,13 +199,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                         Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                     } else {
                                         Toast.makeText(LoginActivity.this, "Sign up successful", Toast.LENGTH_SHORT).show();
-                                        jumpToMainActivity("newcomer");
-                                        // TODO: complete user info (in separate thread)
-                                        User user = new User(mEmailView.getText().toString(),
-                                                userIdInput.getText().toString(),
-                                                userDOBInput.getText().toString(),
-                                                userGenderSwitch.isChecked());
-                                        mDatabaseReference.child("users").child(user.getUserId()).setValue(user);
                                     }
                                 }
                             });
@@ -229,13 +253,27 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         });
     }
 
+    private boolean checkEmailPassword(String email, String password) {
+        boolean valid = true;
+        if (!Misc.isValidEmail(email)) {
+            mEmailView.setError("Invalid email");
+            valid = false;
+        }
+        if (!Misc.isValidPassword(password)) {
+            mPasswordView.setError("At least 6 characters");
+            valid = false;
+        }
+        return valid;
+    }
+
     @Override
     public void onStart() {
         super.onStart();
         FirebaseUser user = mFirebaseAuth.getCurrentUser();
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
         if (user != null) {
-            jumpToMainActivity("Welcome back");
+            //TODO: retrieve user info from database
+            jumpToMainActivity(null);
         }
     }
 
@@ -264,31 +302,30 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-    private void jumpToMainActivity(String s) {
+    private void jumpToMainActivity(User user) {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        intent.putExtra("login from", s);
+        intent.putExtra("login from", user.getUserId());
         startActivity(intent);
     }
 
     private class FireBaseListener implements OnCompleteListener {
         private String greetings;
+
         public FireBaseListener(String greetings) {
             this.greetings = greetings;
         }
+
         @Override
         public void onComplete(@NonNull Task task) {
             if (!task.isSuccessful()) {
                 Log.e(TAG, "Sign in with " + greetings + " failed: ", task.getException());
-                Toast.makeText(LoginActivity.this, "Invalid user credentials", Toast.LENGTH_SHORT).show();
-            } else {
-                jumpToMainActivity(greetings);
+                Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     /**
-     * TODO: show up date picker for sign up forms
-     * @param view              the date and time EditText pressed
+     * @param view the date and time EditText pressed
      */
     public void showDatePicker(View view) {
         DialogFragment newFragment = new DatePickerFragment();
@@ -298,10 +335,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     /**
      * TODO: show sign up pannel from the signup_login container
      * with animation
-     * @param v                 the SignUp text pressed
+     *
+     * @param v the SignUp text pressed
      */
     public void onBottomTextClicked(View v) {
-        if (getResources().getString(R.string.action_show_sign_up).equals(((TextView)v).getText())) {
+        if (getResources().getString(R.string.action_show_sign_up).equals(((TextView) v).getText())) {
             showSignUpPanel(true);
         } else {
             showSignUpPanel(false);
@@ -309,7 +347,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     public static class DatePickerFragment extends DialogFragment
-            implements DatePickerDialog.OnDateSetListener{
+            implements DatePickerDialog.OnDateSetListener {
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -328,7 +366,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     "" + year + "-" + (month + 1) + "-" + dayOfMonth);
         }
     }
-
     /*--------------------------------------------------------------------------------------------*
      *                             A U T O   C O M P L E T E   L O G I C
      *--------------------------------------------------------------------------------------------*/
@@ -362,7 +399,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
         return false;
     }
-
 
 
     /**
