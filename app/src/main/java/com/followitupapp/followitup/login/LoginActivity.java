@@ -32,6 +32,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -120,17 +121,26 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     Switch userGenderSwitch;
     @BindView(R.id.login_signup_container)
     LinearLayout loginSignUpContainer;
+    @BindView(R.id.app_logo_container)
+    LinearLayout logoContainer;
+    @BindView(R.id.bottom_container)
+    LinearLayout bottomContainer;
+    @BindView(R.id.login_spinner)
+    ProgressBar loginSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // inject views
+        ButterKnife.bind(this);
+
         // hide action bar
         getSupportActionBar().hide();
 
-        // inject views
-        ButterKnife.bind(this);
+        // TODO: show spinner or splash screen
+        showLoading(true);
 
         // Firebase realtime database
         mUserReference = FirebaseDatabase.getInstance().getReference().child("users");
@@ -157,6 +167,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     mUserListChangeSingleListener.setUser(user);
                     mUserReference.addListenerForSingleValueEvent(mUserListChangeSingleListener);
                 } else {
+                    // TODO: show login items
+                    showLoading(false);
                     Log.d(TAG, "onAuthStateChanged:signed_out");
                 }
             }
@@ -170,6 +182,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     String email = mEmailView.getText().toString().trim();
                     String password = mPasswordView.getText().toString().trim();
                     if (checkEmailPassword(email, password)) {
+                        showLoading(true);
                         mFirebaseAuth.signInWithEmailAndPassword(email, password)
                                 .addOnCompleteListener(LoginActivity.this, new FireBaseListener("Email/Pass"));
                         return true;
@@ -189,6 +202,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 if (!checkEmailPassword(email, password)) {
                     return;
                 }
+                showLoading(true);
                 if (btnText.equals(action_sign_in)) {
                     mFirebaseAuth.signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener(LoginActivity.this, new FireBaseListener("Email/Pass"));
@@ -200,6 +214,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                     if (!task.isSuccessful()) {
                                         Log.e(TAG, "User sign up failed: ", task.getException());
                                         Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                        showLoading(false);
                                     } else {
                                         Toast.makeText(LoginActivity.this, "Sign up successful", Toast.LENGTH_SHORT).show();
                                         mFirebaseAuth.signInWithEmailAndPassword(email, password);
@@ -212,6 +227,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         // FB login
         callbackManager = CallbackManager.Factory.create();
+        fbLogin.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLoading(true);
+            }
+        });
         fbLogin.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
@@ -250,10 +271,18 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         gLogin.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                showLoading(true);
                 Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
                 startActivityForResult(signInIntent, RC_SIGN_IN);
             }
         });
+    }
+
+    private void showLoading(boolean loading) {
+        loginSpinner.setVisibility(loading ? View.VISIBLE : View.GONE);
+        loginSignUpContainer.setVisibility(loading ? View.GONE : View.VISIBLE);
+        logoContainer.setVisibility(loading ? View.GONE : View.VISIBLE);
+        bottomContainer.setVisibility(loading ? View.GONE : View.VISIBLE);
     }
 
     private boolean checkEmailPassword(String email, String password) {
@@ -328,6 +357,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         public void onComplete(@NonNull Task task) {
             if (!task.isSuccessful()) {
+                showLoading(false);
                 Log.e(TAG, "Sign in with " + greetings + " failed: ", task.getException());
                 Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }

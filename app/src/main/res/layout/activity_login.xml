@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_horizontal"
+    android:gravity="center"
     android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -10,6 +10,14 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@color/loginActivityBackground"
     tools:context="com.followitupapp.followitup.login.LoginActivity">
+
+    <ProgressBar
+        android:id="@+id/login_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="?android:attr/progressBarStyleLarge"
+        android:visibility="gone">
+    </ProgressBar>
 
     <LinearLayout
         android:id="@+id/app_logo_container"

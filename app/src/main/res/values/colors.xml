@@ -5,5 +5,5 @@
     <color name="colorAccent">#f0d73e3e</color>
 
     <color name="inputSlot">#a2383838</color>
-    <color name="loginActivityBackground">#56c95f</color>
+    <color name="loginActivityBackground">#ffffff</color>
 </resources>
