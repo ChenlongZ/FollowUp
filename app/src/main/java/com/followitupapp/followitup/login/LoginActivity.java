@@ -86,6 +86,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private FirebaseAuth mFirebaseAuth;
     private DatabaseReference mUserReference;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private UsersListChangeListener mUserListChangeSingleListener;
 
     // Email/Pass login.
     @BindView(R.id.email_edittext)
@@ -133,6 +134,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         // Firebase realtime database
         mUserReference = FirebaseDatabase.getInstance().getReference().child("users");
+        mUserListChangeSingleListener = new UsersListChangeListener();
 
         // Firebase Auth Setup
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -144,15 +146,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + firebaseUser.getUid());
                     String userId = firebaseUser.getUid();
                     String userEmail = firebaseUser.getEmail();
+                    String userDisplayName = userIdInput == null ? "" : userIdInput.getText().toString();
                     Boolean userSex = userGenderSwitch == null || userGenderSwitch.isChecked();
                     String userDOB = (userDOBInput != null && !"".equals(userDOBInput.getText().toString()))
                             ? userDOBInput.getText().toString().trim()
                             : "1900-01-01";
-                    User user = new User(userEmail, userId, userDOB, userSex);
+                    User user = new User(userEmail, userId, userDisplayName, userDOB, userSex);
                     // TODO: do a query, if there is a user with the userId, we proceed with the user
                     // TODO: if there's no user exists, we create a user with the info we have
-                    mUserReference.child(userId).setValue(user);
-                    jumpToMainActivity(user);
+                    mUserListChangeSingleListener.setUser(user);
+                    mUserReference.addListenerForSingleValueEvent(mUserListChangeSingleListener);
                 } else {
                     Log.d(TAG, "onAuthStateChanged:signed_out");
                 }
@@ -181,8 +184,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 String action_sign_in = getResources().getString(R.string.action_sign_in);
                 String action_sign_up = getResources().getString(R.string.action_sign_up);
                 String btnText = (((Button) view).getText().toString());
-                String email = mEmailView.getText().toString().trim();
-                String password = mPasswordView.getText().toString().trim();
+                final String email = mEmailView.getText().toString().trim();
+                final String password = mPasswordView.getText().toString().trim();
                 if (!checkEmailPassword(email, password)) {
                     return;
                 }
@@ -199,6 +202,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                         Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                     } else {
                                         Toast.makeText(LoginActivity.this, "Sign up successful", Toast.LENGTH_SHORT).show();
+                                        mFirebaseAuth.signInWithEmailAndPassword(email, password);
                                     }
                                 }
                             });
@@ -211,8 +215,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         fbLogin.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                Log.d(TAG, "FB login successful");
-                Log.d(TAG, "Jumping to Firebase credentials");
+                Log.d(TAG, "FB login successful, exchanging for Firebase credentials");
                 AuthCredential credential = FacebookAuthProvider.getCredential(loginResult.getAccessToken().getToken());
                 mFirebaseAuth.signInWithCredential(credential)
                         .addOnCompleteListener(LoginActivity.this, new FireBaseListener("Facebook"));
@@ -269,12 +272,18 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     public void onStart() {
         super.onStart();
-        FirebaseUser user = mFirebaseAuth.getCurrentUser();
-        mFirebaseAuth.addAuthStateListener(mAuthStateListener);
-        if (user != null) {
-            //TODO: retrieve user info from database
-            jumpToMainActivity(null);
+        if (mUserListChangeSingleListener != null) {
+            mUserListChangeSingleListener.reset();
         }
+        if (mAuthStateListener != null) {
+            mFirebaseAuth.addAuthStateListener(mAuthStateListener);
+        }
+//        FirebaseUser user = mFirebaseAuth.getCurrentUser();
+//        mFirebaseAuth.addAuthStateListener(mAuthStateListener);
+//        if (user != null) {
+//            //TODO: retrieve user info from database
+//            jumpToMainActivity(null);
+//        }
     }
 
     @Override
@@ -321,6 +330,42 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 Log.e(TAG, "Sign in with " + greetings + " failed: ", task.getException());
                 Toast.makeText(LoginActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    private class UsersListChangeListener implements ValueEventListener {
+
+        private User user;
+        private boolean checked = false;
+
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            if (checked) {
+                return;
+            }
+            String uid = this.user.getUserId();
+            if (!dataSnapshot.hasChild(uid)) {
+                Log.d(TAG, "User doesn't exist");
+                dataSnapshot.getRef().child(uid).setValue(user);
+            } else {
+                Log.d(TAG, "User already exists");
+                user = dataSnapshot.child(uid).getValue(User.class);
+            }
+            checked = true;
+            jumpToMainActivity(user);
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            Log.w(TAG, "Database query canceled");
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
+
+        public void reset() {
+            this.checked = false;
         }
     }
 

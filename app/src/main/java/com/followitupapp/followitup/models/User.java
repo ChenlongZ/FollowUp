@@ -17,6 +17,7 @@ public class User {
     private static Locale loc = Locale.getDefault();
     public String email;
     public String userId;
+    public String userDisplayName;
     public Calendar dateOfBirth;
     public boolean sex;
     public int age;
@@ -25,9 +26,10 @@ public class User {
     public User() {
     }
 
-    public User(String email, String userId, String dataOfBirth, boolean male) {
+    public User(String email, String userId, String userDisplayName, String dataOfBirth, boolean male) {
         this.email = email;
         this.userId = userId;
+        this.userDisplayName = userDisplayName;
         String[] dob = dataOfBirth.split("-");
         this.dateOfBirth = new GregorianCalendar(Integer.parseInt(dob[0]),
                 Integer.parseInt(dob[1]),
@@ -43,6 +45,10 @@ public class User {
 
     public String getUserId() {
         return this.userId;
+    }
+
+    public String getUserDisplayName() {
+        return this.userDisplayName;
     }
 
     public int getAge() {
@@ -67,6 +73,15 @@ public class User {
 
     public void setEmail(String Email) {
         this.email = email;
+    }
+
+    public void setUserDisplayName(String displayName) {
+        this.userDisplayName = displayName;
+    }
+
+    public void setDateOfBirth(long dateOfBirthInMilli) {
+        this.dateOfBirth = new GregorianCalendar();
+        this.dateOfBirth.setTimeInMillis(dateOfBirthInMilli);
     }
 
     public void setAge(int age) {
