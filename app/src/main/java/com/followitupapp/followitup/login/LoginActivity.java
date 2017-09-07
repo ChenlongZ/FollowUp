@@ -139,7 +139,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // hide action bar
         getSupportActionBar().hide();
 
-        // TODO: show spinner or splash screen
+        // show spinner or splash screen
         showLoading(true);
 
         // Firebase realtime database
@@ -162,12 +162,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             ? userDOBInput.getText().toString().trim()
                             : "1900-01-01";
                     User user = new User(userEmail, userId, userDisplayName, userDOB, userSex);
-                    // TODO: do a query, if there is a user with the userId, we proceed with the user
-                    // TODO: if there's no user exists, we create a user with the info we have
+                    // do a query, if there is a user with the userId, we proceed with the user
+                    // if there's no user exists, we create a user with the info we have
                     mUserListChangeSingleListener.setUser(user);
                     mUserReference.addListenerForSingleValueEvent(mUserListChangeSingleListener);
                 } else {
-                    // TODO: show login items
                     showLoading(false);
                     Log.d(TAG, "onAuthStateChanged:signed_out");
                 }
@@ -236,6 +235,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         fbLogin.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
+                // TODO: should handle logout here
                 Log.d(TAG, "FB login successful, exchanging for Firebase credentials");
                 AuthCredential credential = FacebookAuthProvider.getCredential(loginResult.getAccessToken().getToken());
                 mFirebaseAuth.signInWithCredential(credential)
@@ -307,12 +307,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         if (mAuthStateListener != null) {
             mFirebaseAuth.addAuthStateListener(mAuthStateListener);
         }
-//        FirebaseUser user = mFirebaseAuth.getCurrentUser();
-//        mFirebaseAuth.addAuthStateListener(mAuthStateListener);
-//        if (user != null) {
-//            //TODO: retrieve user info from database
-//            jumpToMainActivity(null);
-//        }
     }
 
     @Override
@@ -388,7 +382,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         public void onCancelled(DatabaseError databaseError) {
-            Log.w(TAG, "Database query canceled");
+            Log.w(TAG, "Database query canceled", databaseError.toException());
+            showLoading(false);
+            Toast.makeText(LoginActivity.this, "Login failed", Toast.LENGTH_SHORT).show();
         }
 
         public void setUser(User user) {

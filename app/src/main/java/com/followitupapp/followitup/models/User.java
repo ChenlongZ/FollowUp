@@ -22,6 +22,7 @@ public class User {
     public boolean sex;
     public int age;
     public Misc.Zodiac zodiac;
+    public long dateOfCreation;
 
     public User() {
     }
@@ -37,6 +38,7 @@ public class User {
         this.age = Misc.getAge(this.dateOfBirth);
         this.zodiac = Misc.getZodiac(this.dateOfBirth);
         this.sex = male;
+        this.dateOfCreation = System.currentTimeMillis();
     }
 
     public String getEmail() {
@@ -69,6 +71,10 @@ public class User {
 
     public long getDateOfBirth() {
         return this.dateOfBirth.getTimeInMillis();
+    }
+
+    public long getDateOfCreation() {
+        return this.dateOfCreation;
     }
 
     public void setEmail(String Email) {
